@@ -6,6 +6,7 @@ Repositório para a matéria de computação gráfica do IC UFAL
 
 Também é necessário um compilador para C++ instalado no computador.
 
+(Os comandos demonstrados abaixo são para o g++, disponível no ubuntu)
 Para compilar e rodar o programa (no linux), navegue até a pasta em que foi feito o clone o repositório e rode o seguinte comando:
 g++ main.cpp -o main -lglut -lGLU -lGL -lGLEW && ./main
 
