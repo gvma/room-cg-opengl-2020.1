@@ -19,3 +19,8 @@ Os controles utilizados para explorarmos a cena do quarto são:
 - D: movimentar a câmera para direita;
 - P: abrir e fechar a porta;
 - J: abrir e fechar a janela;
+
+Referências das funções e objetos utilizados no quarto:
+- Blender;
+- Tinkercad;
+- https://www.khronos.org/ (para entendimento e utilização das funções);
