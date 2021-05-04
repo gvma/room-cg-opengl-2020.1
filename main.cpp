@@ -81,8 +81,6 @@ GLfloat windowTranslation = 1.f;
 
 using namespace std;
 
-void onPositionUpdated(glm::vec3 position);
-
 void loadTexture(const char* fileName, Texture* texture) 
 {
     glBindTexture(GL_TEXTURE_2D, texture->id);
@@ -248,7 +246,6 @@ void display(void)
         tableMesh.material.dye();
 
         glVertexPointer(3, GL_FLOAT, 0, &tableMesh.vertices_pointers[0]);
-        glTexCoordPointer(2, GL_FLOAT, 0, &tableMesh.vertices_tex_coords[0]);
         glNormalPointer(GL_FLOAT, 0, &tableMesh.vertices_normals[0]);
         glDrawElements(GL_TRIANGLES, tableMesh.indices_pointers.size(), GL_UNSIGNED_INT, &tableMesh.indices_pointers[0]);
         
@@ -267,7 +264,6 @@ void display(void)
         bedMesh.material.dye();
 
         glVertexPointer(3, GL_FLOAT, 0, &bedMesh.vertices_pointers[0]);
-        glTexCoordPointer(2, GL_FLOAT, 0, &bedMesh.vertices_tex_coords[0]);
         glNormalPointer(GL_FLOAT, 0, &bedMesh.vertices_normals[0]);
         glDrawElements(GL_TRIANGLES, bedMesh.indices_pointers.size(), GL_UNSIGNED_INT, &bedMesh.indices_pointers[0]);
 
@@ -276,7 +272,6 @@ void display(void)
         glPushMatrix();
 
             glVertexPointer(3, GL_FLOAT, 0, &bedMattressMesh.vertices_pointers[0]);
-            glTexCoordPointer(2, GL_FLOAT, 0, &bedMattressMesh.vertices_tex_coords[0]);
             glNormalPointer(GL_FLOAT, 0, &bedMattressMesh.vertices_normals[0]);
             glDrawElements(GL_TRIANGLES, bedMattressMesh.indices_pointers.size(), GL_UNSIGNED_INT, &bedMattressMesh.indices_pointers[0]);
 
@@ -299,7 +294,6 @@ void display(void)
         wardrobeMesh.material.dye();
 
         glVertexPointer(3, GL_FLOAT, 0, &wardrobeMesh.vertices_pointers[0]);
-        glTexCoordPointer(2, GL_FLOAT, 0, &wardrobeMesh.vertices_tex_coords[0]);
         glNormalPointer(GL_FLOAT, 0, &wardrobeMesh.vertices_normals[0]);
         glDrawElements(GL_TRIANGLES, wardrobeMesh.indices_pointers.size(), GL_UNSIGNED_INT, &wardrobeMesh.indices_pointers[0]);
         
@@ -313,7 +307,6 @@ void display(void)
             wardrobeAMesh.material.dye();
 
             glVertexPointer(3, GL_FLOAT, 0, &wardrobeAMesh.vertices_pointers[0]);
-            glTexCoordPointer(2, GL_FLOAT, 0, &wardrobeAMesh.vertices_tex_coords[0]);
             glNormalPointer(GL_FLOAT, 0, &wardrobeAMesh.vertices_normals[0]);
             glDrawElements(GL_TRIANGLES, wardrobeAMesh.indices_pointers.size(), GL_UNSIGNED_INT, &wardrobeAMesh.indices_pointers[0]);
 
