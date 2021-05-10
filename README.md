@@ -19,6 +19,8 @@ Os controles utilizados para explorarmos a cena do quarto são:
 - D: movimentar a câmera para direita;
 - P: abrir e fechar a porta;
 - J: abrir e fechar a janela;
+- V: velocidade do ventilador (aumenta em até 2x e depois desliga);
+- L: acende/desliga a luminária;
 
 Referências das funções e objetos utilizados no quarto:
 - Blender;
