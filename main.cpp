@@ -27,11 +27,32 @@ Texture doorTexture;
 Texture doorFrameTexture;
 Texture ricardoSemVergonhoTexture;
 Texture woodTexture;
+Texture whiteTexture;
 Texture darkWoodTexture;
 Texture someTexture;
 Texture screenTexture;
+Texture sheetTexture;
+Texture vanGoghTexture;
 
+mat::Material ambient(0.7, 0.7, 0.7, 0.8, 0.8, 0.8, 1.0, 1.0, 1.0, 100);
 mat::Material silver(0.19225, 0.19225, 0.19225, 0.50754, 0.50754, 0.50754, 0.508273, 0.508273, 0.508273, 51.2);
+
+// Light Props
+
+static GLfloat light0_ambient[]	    = { 0.2, 0.2, 0.2, 1.0 };
+static GLfloat light0_diffuse[]	    = { 0.8, 0.8, 0.8, 1.0 };
+static GLfloat light0_specular[]	= { 1.0, 1.0, 1.0, 1.0 };
+static GLfloat light0_position[]	= { 0.0, 0.0, 0.0, 1.0 };
+
+static bool light1_enabled          = true;
+static GLfloat light1_offset[]	    = { 19.4, 4, -19.2 };
+static GLfloat light1_ambient[]	    = { 0.2, 0.2, 0.2, 1.0 };
+static GLfloat light1_diffuse[]	    = { 1.0, 1.0, 1.0, 1.0 };
+static GLfloat light1_specular[]	= { 1.0, 1.0, 1.0, 1.0 };
+static GLfloat light1_position[]	= { 0.0, 3.0, 0.0, 1.0 };
+static GLfloat light1_direction[]	= { 0.0, -1.0, 0.0 };
+static GLfloat light1_angle	        = 20.0;
+static GLfloat light1_exponent	    = 2.0;
 
 objl::Loader chairLoader;
 objl::MeshInfo chairMesh;
@@ -135,25 +156,65 @@ void initTextures()
     loadTexture("./res/textures/door-frame.png", &doorFrameTexture);
     setupTexture(&doorFrameTexture);
 
+    loadTexture("./res/textures/starry-night.png", &vanGoghTexture);
+    setupTexture(&vanGoghTexture);
+
     loadTexture("./res/textures/ricardoComCaraDeSemVergonho.png", &ricardoSemVergonhoTexture);
     setupTexture(&ricardoSemVergonhoTexture);
 
-    loadTexture("./objs/bed/wood.png", &woodTexture);
+    loadTexture("./objs/bed/darkwood.png", &woodTexture); 
     setupTexture(&woodTexture);
+
+    loadTexture("./res/textures/grey-texture.png", &whiteTexture);
+    setupTexture(&whiteTexture);
 
     loadTexture("./objs/bed/sheet.png", &someTexture);
     setupTexture(&someTexture);
+
+    loadTexture("./objs/bed/sheet copy.png", &sheetTexture);
+    setupTexture(&sheetTexture);
 }
 
 void init(void)
 {   
    glClearColor (0.31, 0.61, 0.85, 1.0);
 
+   glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
+
+    // Anti aliasing smoothing props ........
    glEnable(GL_LINE_SMOOTH);
    glEnable(GL_POINT_SMOOTH);
    glEnable(GL_BLEND);
 
-   glEnable(GL_DEPTH_TEST);
+   // Lighting and Shade setup .............................................................
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL); 
+    glShadeModel(GL_SMOOTH);
+
+    glEnable(GL_LIGHTING); 
+    
+	// Light 0 property vectors .............................................................
+
+    glLightfv(GL_LIGHT0, GL_AMBIENT, light0_ambient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, light0_specular);
+    glLightfv(GL_LIGHT0, GL_POSITION, light0_position);
+
+    glEnable(GL_LIGHT0);
+
+    // End Light 0 ..........................................................................
+    // Light 1 property vectors .............................................................
+
+    glLightfv(GL_LIGHT1, GL_AMBIENT, light1_ambient);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, light1_diffuse);
+    glLightfv(GL_LIGHT1, GL_SPECULAR, light1_specular);
+    glLightfv(GL_LIGHT1, GL_POSITION, light1_position);
+    
+    glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, light1_angle);
+    glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, light1_direction);
+    glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, light1_exponent);
+
+    glEnable(GL_LIGHT1);
 
    glEnable(GL_COLOR_MATERIAL); 
    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE); 
@@ -188,6 +249,31 @@ void init(void)
    cactusMesh = cactusLoader.LoadedMeshes[0].setup();
    cactusPlantMesh = cactusLoader.LoadedMeshes[1].setup();
 }
+
+void setupLightning()
+{
+    glEnable(GL_LIGHTING); 
+
+    glEnable(GL_LIGHT0);
+    glPushMatrix();
+        glTranslatef(roomWidth / 2, roomHeight - 0.5, -(roomWidth / 2));
+        GLfloat light0_position[]	= {0, 0, 0, 1};
+        glLightfv(GL_LIGHT0, GL_POSITION, light0_position);
+    glPopMatrix();
+
+    if (light1_enabled) {
+        glEnable(GL_LIGHT1);
+        glPushMatrix();
+            glTranslatef(light1_offset[0], light1_offset[1], light1_offset[2]);
+
+            glLightfv(GL_LIGHT1, GL_POSITION, light1_position);
+            glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, light1_angle);
+            glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, light1_direction);
+            glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, light1_exponent);
+        glPopMatrix();
+    }
+}
+
 
 void setupCamera() 
 {
@@ -231,6 +317,9 @@ void display(void)
     drawCrosshair(windows_w, windows_h);
 
     setupCamera();
+    setupLightning();
+    
+    ambient.active();
     
     //glTranslatef é usado para movimentar os objetos dentro do quarto (os parâmetros são as coordenadas dos pontos que o objeto será renderizado)
 
@@ -241,11 +330,17 @@ void display(void)
 
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_NORMAL_ARRAY);
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+        glEnable(GL_TEXTURE_2D);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+        glBindTexture(GL_TEXTURE_2D, whiteTexture.id);
 
         tableMesh.material.active();
         tableMesh.material.dye();
 
         glVertexPointer(3, GL_FLOAT, 0, &tableMesh.vertices_pointers[0]);
+        glTexCoordPointer(2, GL_FLOAT, 0, &bedsideMesh.vertices_tex_coords[0]);
         glNormalPointer(GL_FLOAT, 0, &tableMesh.vertices_normals[0]);
         glDrawElements(GL_TRIANGLES, tableMesh.indices_pointers.size(), GL_UNSIGNED_INT, &tableMesh.indices_pointers[0]);
         
@@ -259,19 +354,31 @@ void display(void)
 
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_NORMAL_ARRAY);
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+        glEnable(GL_TEXTURE_2D);
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+        glBindTexture(GL_TEXTURE_2D, woodTexture.id);
 
         bedMesh.material.active();
         bedMesh.material.dye();
 
         glVertexPointer(3, GL_FLOAT, 0, &bedMesh.vertices_pointers[0]);
+        glTexCoordPointer(2, GL_FLOAT, 0, &bedMesh.vertices_tex_coords[0]);
         glNormalPointer(GL_FLOAT, 0, &bedMesh.vertices_normals[0]);
         glDrawElements(GL_TRIANGLES, bedMesh.indices_pointers.size(), GL_UNSIGNED_INT, &bedMesh.indices_pointers[0]);
 
         glDisable(GL_TEXTURE_2D);
 
         glPushMatrix();
+            glEnable(GL_TEXTURE_2D);
+            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+            glBindTexture(GL_TEXTURE_2D, sheetTexture.id);
+
+            bedMattressMesh.material.active();
 
             glVertexPointer(3, GL_FLOAT, 0, &bedMattressMesh.vertices_pointers[0]);
+            glTexCoordPointer(2, GL_FLOAT, 0, &bedMattressMesh.vertices_tex_coords[0]);
             glNormalPointer(GL_FLOAT, 0, &bedMattressMesh.vertices_normals[0]);
             glDrawElements(GL_TRIANGLES, bedMattressMesh.indices_pointers.size(), GL_UNSIGNED_INT, &bedMattressMesh.indices_pointers[0]);
 
@@ -431,6 +538,8 @@ void display(void)
         glRotatef(45, 1, 0, 0);
 
         glPushMatrix();
+            fanPropellerMesh.material.active();
+            fanPropellerMesh.material.dye();
         
             glVertexPointer(3, GL_FLOAT, 0, &fanPropellerMesh.vertices_pointers[0]);
             glNormalPointer(GL_FLOAT, 0, &fanPropellerMesh.vertices_normals[0]);
@@ -445,12 +554,22 @@ void display(void)
         buildBoard(&ricardoSemVergonhoTexture, rgb(154, 149, 143), {1.5, 1.8618, 0.1});
     glPopMatrix();
 
+    glPushMatrix();
+        glRotatef(270, 0, 1, 0);
+        glTranslatef(-9, 5.2, -0.1);
+        buildBoard(&vanGoghTexture, rgb(154, 149, 143), {4.5, 3, 0.1});
+    glPopMatrix();
+
+
     // Chair
     glPushMatrix();
         glTranslatef(16, 0, -15);
         glRotatef(90, 0, 1, 0);
         glRotatef(-90, 1, 0, 0);
         glScalef(0.15, 0.15, 0.15);
+
+        chairMesh.material.active();
+        chairMesh.material.dye();
 
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_NORMAL_ARRAY);
@@ -460,26 +579,14 @@ void display(void)
         glDrawElements(GL_TRIANGLES, chairMesh.indices_pointers.size(), GL_UNSIGNED_INT, &chairMesh.indices_pointers[0]);
 
         glPushMatrix();
+            chairSeatMesh.material.active();
+            chairSeatMesh.material.dye();
 
             glVertexPointer(3, GL_FLOAT, 0, &chairSeatMesh.vertices_pointers[0]);
             glNormalPointer(GL_FLOAT, 0, &chairSeatMesh.vertices_normals[0]);
             glDrawElements(GL_TRIANGLES, chairSeatMesh.indices_pointers.size(), GL_UNSIGNED_INT, &chairSeatMesh.indices_pointers[0]);
         glPopMatrix();
-    glPopMatrix();
-
-    // // Seat
-    glPushMatrix();
-        glEnable(GL_NORMALIZE);
-        glDisable( GL_CULL_FACE );
-        glShadeModel(GL_SMOOTH);
-
-        glTranslatef(1, 0, -roomWidth + 1);
-        glRotatef(-90, 1, 0, 0);
-        glScalef(0.15, 0.15, 0.15);
-
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_NORMAL_ARRAY);
-    glPopMatrix();
+    glPopMatrix(); 
 
 
     //cactus
@@ -491,11 +598,16 @@ void display(void)
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_NORMAL_ARRAY);
 
+        cactusMesh.material.active();
+        cactusMesh.material.dye();
+
         glVertexPointer(3, GL_FLOAT, 0, &cactusMesh.vertices_pointers[0]);
         glNormalPointer(GL_FLOAT, 0, &cactusMesh.vertices_normals[0]);
         glDrawElements(GL_TRIANGLES, cactusMesh.indices_pointers.size(), GL_UNSIGNED_INT, &cactusMesh.indices_pointers[0]);
 
         glPushMatrix();
+            cactusPlantMesh.material.active();
+            cactusPlantMesh.material.dye();
 
             glVertexPointer(3, GL_FLOAT, 0, &cactusPlantMesh.vertices_pointers[0]);
             glNormalPointer(GL_FLOAT, 0, &cactusPlantMesh.vertices_normals[0]);
@@ -577,10 +689,26 @@ void keyboard (unsigned char key, int x, int y)
         case 'j':
             windowAnimation = windowTranslation == 1.0f ? BACKWARDS : FORWARDS;
             break;
-
+        case 'l':
+            light1_enabled = !light1_enabled;
+            if (!light1_enabled) glDisable(GL_LIGHT1);
+            break;
         default:
             break;
     }
+}
+
+void specialKeyInput(int key, int x, int y)
+{
+    switch (key) {
+        case GLUT_KEY_F1:
+            glDisable(GL_LIGHT0);
+            break;
+        default:
+            break;
+    }
+
+    glutPostRedisplay();
 }
 
 void motion(int x, int y)
