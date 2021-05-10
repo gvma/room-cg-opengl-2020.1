@@ -158,9 +158,6 @@ void initTextures()
     loadTexture("./res/textures/blacktile.png", &floorTexture);
     setupTexture(&floorTexture);
 
-    loadTexture("./res/textures/window.png", &windowTexture);
-    setupTexture(&windowTexture);
-
     loadTexture("./res/textures/door2.png", &doorTexture);
     setupTexture(&doorTexture);
 
