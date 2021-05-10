@@ -195,19 +195,19 @@ void init(void)
 
    glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
 
-    // Anti aliasing smoothing props ........
+    // Anti aliasing smoothing props 
    glEnable(GL_LINE_SMOOTH);
    glEnable(GL_POINT_SMOOTH);
    glEnable(GL_BLEND);
 
-   // Lighting and Shade setup .............................................................
+   // Lighting and Shade setup 
    glEnable(GL_DEPTH_TEST);
    glDepthFunc(GL_LEQUAL); 
    glShadeModel(GL_SMOOTH);
 
    glEnable(GL_LIGHTING); 
     
-   // Light 0 property vectors .............................................................
+   // Light 0 property vectors
 
    glLightfv(GL_LIGHT0, GL_AMBIENT, light0_ambient);
    glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diffuse);
@@ -216,8 +216,8 @@ void init(void)
 
    glEnable(GL_LIGHT0);
 
-   // End Light 0 ..........................................................................
-   // Light 1 property vectors .............................................................
+   // End Light 0
+   // Light 1 property vectors 
 
    glLightfv(GL_LIGHT1, GL_AMBIENT, light1_ambient);
    glLightfv(GL_LIGHT1, GL_DIFFUSE, light1_diffuse);
@@ -347,8 +347,6 @@ void display(void)
     
     ambient.active();
     
-    //glTranslatef é usado para movimentar os objetos dentro do quarto (os parâmetros são as coordenadas dos pontos que o objeto será renderizado)
-
     // Table
     glPushMatrix();
         glTranslatef(19.2f, 7.3f, -7.2f);
@@ -455,8 +453,8 @@ void display(void)
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_NORMAL_ARRAY);
 
-        // mouseMesh.material.active();
-        // mouseMesh.material.dye();
+        mouseMesh.material.active();
+        mouseMesh.material.dye();
 
         glVertexPointer(3, GL_FLOAT, 0, &mouseMesh.vertices_pointers[0]);
         glNormalPointer(GL_FLOAT, 0, &mouseMesh.vertices_normals[0]);
