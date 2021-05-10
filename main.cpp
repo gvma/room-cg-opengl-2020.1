@@ -54,6 +54,9 @@ static GLfloat light1_direction[]	= { 0.0, -1.0, 0.0 };
 static GLfloat light1_angle	        = 20.0;
 static GLfloat light1_exponent	    = 2.0;
 
+objl::Loader lampLoader;
+objl::MeshInfo lampMesh;
+
 objl::Loader chairLoader;
 objl::MeshInfo chairMesh;
 objl::MeshInfo chairSeatMesh;
@@ -94,11 +97,19 @@ objl::Loader wardrobeLoader;
 objl::MeshInfo wardrobeMesh;
 objl::MeshInfo wardrobeAMesh;
 
+static GLfloat lamp_offset[] = { 19, 3.3, -20 };
+
 AnimationState doorAnimation = IDLE;
 GLfloat doorAngle = 0.f;
 
 AnimationState windowAnimation = IDLE;
 GLfloat windowTranslation = 1.f;
+
+AnimationState fanAnimation = FORWARDS;
+const GLfloat FAN_LOW_SPEED = 8.0f;
+const GLfloat FAN_MAX_SPEED = 16.0f;
+GLfloat fanRotation = 1.f;
+GLfloat fanRotationSpeed = FAN_LOW_SPEED;
 
 using namespace std;
 
@@ -156,13 +167,13 @@ void initTextures()
     loadTexture("./res/textures/door-frame.png", &doorFrameTexture);
     setupTexture(&doorFrameTexture);
 
-    loadTexture("./res/textures/starry-night.png", &vanGoghTexture);
+    loadTexture("./res/textures/gogh.png", &vanGoghTexture);
     setupTexture(&vanGoghTexture);
 
     loadTexture("./res/textures/ricardoComCaraDeSemVergonho.png", &ricardoSemVergonhoTexture);
     setupTexture(&ricardoSemVergonhoTexture);
 
-    loadTexture("./objs/bed/darkwood.png", &woodTexture); 
+    loadTexture("./objs/bed/wood.png", &woodTexture); 
     setupTexture(&woodTexture);
 
     loadTexture("./res/textures/grey-texture.png", &whiteTexture);
@@ -173,6 +184,9 @@ void initTextures()
 
     loadTexture("./objs/bed/sheet copy.png", &sheetTexture);
     setupTexture(&sheetTexture);
+
+    loadTexture("./res/textures/screen.png", &screenTexture);
+    setupTexture(&screenTexture);
 }
 
 void init(void)
@@ -187,39 +201,41 @@ void init(void)
    glEnable(GL_BLEND);
 
    // Lighting and Shade setup .............................................................
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL); 
-    glShadeModel(GL_SMOOTH);
+   glEnable(GL_DEPTH_TEST);
+   glDepthFunc(GL_LEQUAL); 
+   glShadeModel(GL_SMOOTH);
 
-    glEnable(GL_LIGHTING); 
+   glEnable(GL_LIGHTING); 
     
-	// Light 0 property vectors .............................................................
+   // Light 0 property vectors .............................................................
 
-    glLightfv(GL_LIGHT0, GL_AMBIENT, light0_ambient);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diffuse);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, light0_specular);
-    glLightfv(GL_LIGHT0, GL_POSITION, light0_position);
+   glLightfv(GL_LIGHT0, GL_AMBIENT, light0_ambient);
+   glLightfv(GL_LIGHT0, GL_DIFFUSE, light0_diffuse);
+   glLightfv(GL_LIGHT0, GL_SPECULAR, light0_specular);
+   glLightfv(GL_LIGHT0, GL_POSITION, light0_position);
 
-    glEnable(GL_LIGHT0);
+   glEnable(GL_LIGHT0);
 
-    // End Light 0 ..........................................................................
-    // Light 1 property vectors .............................................................
+   // End Light 0 ..........................................................................
+   // Light 1 property vectors .............................................................
 
-    glLightfv(GL_LIGHT1, GL_AMBIENT, light1_ambient);
-    glLightfv(GL_LIGHT1, GL_DIFFUSE, light1_diffuse);
-    glLightfv(GL_LIGHT1, GL_SPECULAR, light1_specular);
-    glLightfv(GL_LIGHT1, GL_POSITION, light1_position);
-    
-    glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, light1_angle);
-    glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, light1_direction);
-    glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, light1_exponent);
+   glLightfv(GL_LIGHT1, GL_AMBIENT, light1_ambient);
+   glLightfv(GL_LIGHT1, GL_DIFFUSE, light1_diffuse);
+   glLightfv(GL_LIGHT1, GL_SPECULAR, light1_specular);
+   glLightfv(GL_LIGHT1, GL_POSITION, light1_position);
+   
+   glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, light1_angle);
+   glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, light1_direction);
+   glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, light1_exponent);
 
-    glEnable(GL_LIGHT1);
+   glEnable(GL_LIGHT1);
 
    glEnable(GL_COLOR_MATERIAL); 
    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE); 
 
    initTextures();
+
+   lampMesh = lampLoader.LoadedMeshes[0].setup();
 
    chairMesh = chairLoader.LoadedMeshes[0].setup();
    chairSeatMesh = chairLoader.LoadedMeshes[1].setup();
@@ -291,6 +307,16 @@ void setupCamera()
               lookUpMatrix[2][0], lookUpMatrix[2][1], lookUpMatrix[2][2]);
 }
 
+void checkFanRotation()
+{
+    if (fanAnimation == FORWARDS || fanAnimation ==  BACKWARDS)
+    {
+        fanRotation += fanAnimation == FORWARDS ? fanRotationSpeed : -fanRotationSpeed;
+        if (fanRotationSpeed > 360) fanRotationSpeed = 0;
+        else if (fanRotationSpeed < 0) fanRotationSpeed = 360;
+    }
+}
+
 void checkDoorAngle()
 {
     if (doorAnimation == FORWARDS || doorAnimation == BACKWARDS)
@@ -323,6 +349,7 @@ void display(void)
     
     //glTranslatef é usado para movimentar os objetos dentro do quarto (os parâmetros são as coordenadas dos pontos que o objeto será renderizado)
 
+    // Table
     glPushMatrix();
         glTranslatef(19.2f, 7.3f, -7.2f);
         glRotatef(180, 0, 1, 0);
@@ -347,6 +374,7 @@ void display(void)
         glDisable(GL_TEXTURE_2D);
     glPopMatrix();
 
+    // Bed
     glPushMatrix();
         glTranslatef(7.85, -2, -17);
         glRotatef(270, 0, 1, 0);
@@ -364,7 +392,6 @@ void display(void)
         bedMesh.material.dye();
 
         glVertexPointer(3, GL_FLOAT, 0, &bedMesh.vertices_pointers[0]);
-        glTexCoordPointer(2, GL_FLOAT, 0, &bedMesh.vertices_tex_coords[0]);
         glNormalPointer(GL_FLOAT, 0, &bedMesh.vertices_normals[0]);
         glDrawElements(GL_TRIANGLES, bedMesh.indices_pointers.size(), GL_UNSIGNED_INT, &bedMesh.indices_pointers[0]);
 
@@ -372,13 +399,10 @@ void display(void)
 
         glPushMatrix();
             glEnable(GL_TEXTURE_2D);
-            glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
             glBindTexture(GL_TEXTURE_2D, sheetTexture.id);
 
-            bedMattressMesh.material.active();
 
             glVertexPointer(3, GL_FLOAT, 0, &bedMattressMesh.vertices_pointers[0]);
-            glTexCoordPointer(2, GL_FLOAT, 0, &bedMattressMesh.vertices_tex_coords[0]);
             glNormalPointer(GL_FLOAT, 0, &bedMattressMesh.vertices_normals[0]);
             glDrawElements(GL_TRIANGLES, bedMattressMesh.indices_pointers.size(), GL_UNSIGNED_INT, &bedMattressMesh.indices_pointers[0]);
 
@@ -421,7 +445,7 @@ void display(void)
         glPopMatrix();
     glPopMatrix();
 
-    // // Mouse and Mousepad
+    // Mouse and Mousepad
     glPushMatrix();
         glTranslatef(18, 3.5, -13.7);
         glRotatef(-90, 1, 0, 0);
@@ -431,8 +455,8 @@ void display(void)
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_NORMAL_ARRAY);
 
-        mouseMesh.material.active();
-        mouseMesh.material.dye();
+        // mouseMesh.material.active();
+        // mouseMesh.material.dye();
 
         glVertexPointer(3, GL_FLOAT, 0, &mouseMesh.vertices_pointers[0]);
         glNormalPointer(GL_FLOAT, 0, &mouseMesh.vertices_normals[0]);
@@ -448,7 +472,7 @@ void display(void)
         glPopMatrix();
     glPopMatrix();
 
-    // // Keyboard
+    // Keyboard
     glPushMatrix();
         glTranslatef(18, 3.5, -15);
         glRotatef(-90, 0, 1, 0);
@@ -475,7 +499,7 @@ void display(void)
         glPopMatrix();
     glPopMatrix();
 
-    // // Monitor
+    // Monitor
     glPushMatrix();
         glTranslatef(19.4, 3.5, -13);
         glRotatef(-90, 1, 0, 0);
@@ -484,9 +508,6 @@ void display(void)
 
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_NORMAL_ARRAY);
-
-        monitorMesh.material.active();
-        monitorMesh.material.dye();
 
         glVertexPointer(3, GL_FLOAT, 0, &monitorMesh.vertices_pointers[0]);
         glNormalPointer(GL_FLOAT, 0, &monitorMesh.vertices_normals[0]);
@@ -511,7 +532,7 @@ void display(void)
         glPopMatrix();
     glPopMatrix();
 
-    // // Fan
+    // Fan
     glPushMatrix();
         GLfloat fanTranslate[3] = {19.2, 5.3, -7.2};
         glEnableClientState(GL_VERTEX_ARRAY);
@@ -531,11 +552,12 @@ void display(void)
             glDrawElements(GL_TRIANGLES, fanMesh.indices_pointers.size(), GL_UNSIGNED_INT, &fanMesh.indices_pointers[0]);
         glPopMatrix();
 
-        // checkFanRotation();
+        checkFanRotation();
         glTranslatef(fanTranslate[0], fanTranslate[1], fanTranslate[2]);
         glScalef(0.05, 0.05, 0.05);
         glRotatef(270, 0, 0, 1);
         glRotatef(45, 1, 0, 0);
+        glRotatef(fanRotation, 0, 1, 0);
 
         glPushMatrix();
             fanPropellerMesh.material.active();
@@ -560,6 +582,22 @@ void display(void)
         buildBoard(&vanGoghTexture, rgb(154, 149, 143), {4.5, 3, 0.1});
     glPopMatrix();
 
+    glPushMatrix();
+        glTranslatef(lamp_offset[0], lamp_offset[1], lamp_offset[2]);
+        glRotatef(-90, 1, 0, 0);
+        glScalef(0.05, 0.05, 0.05);
+
+        glColor3f(0.2, 0.2, 0.2);
+        lampMesh.material.active();
+
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_NORMAL_ARRAY);
+
+        glVertexPointer(3, GL_FLOAT, 0, &lampMesh.vertices_pointers[0]);
+        glNormalPointer(GL_FLOAT, 0, &lampMesh.vertices_normals[0]);
+
+        glDrawElements(GL_TRIANGLES, lampMesh.indices_pointers.size(), GL_UNSIGNED_INT, &lampMesh.indices_pointers[0]);
+    glPopMatrix();
 
     // Chair
     glPushMatrix();
@@ -587,9 +625,21 @@ void display(void)
             glDrawElements(GL_TRIANGLES, chairSeatMesh.indices_pointers.size(), GL_UNSIGNED_INT, &chairSeatMesh.indices_pointers[0]);
         glPopMatrix();
     glPopMatrix(); 
+    
+    glPushMatrix();
+        glEnable(GL_NORMALIZE);
+        glDisable( GL_CULL_FACE );
+        glShadeModel(GL_SMOOTH);
 
+        glTranslatef(1, 0, -roomWidth + 1);
+        glRotatef(-90, 1, 0, 0);
+        glScalef(0.15, 0.15, 0.15);
 
-    //cactus
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_NORMAL_ARRAY);
+    glPopMatrix();
+
+    // Cactus
     glPushMatrix();
         glTranslatef(19.2, 3.5, -10);
         glRotatef(-90, 1, 0, 0);
@@ -693,6 +743,17 @@ void keyboard (unsigned char key, int x, int y)
             light1_enabled = !light1_enabled;
             if (!light1_enabled) glDisable(GL_LIGHT1);
             break;
+        case 'v':
+            if (fanAnimation == IDLE) {
+                fanRotationSpeed = FAN_LOW_SPEED;
+                fanAnimation = FORWARDS;
+            } else if (fanRotationSpeed == FAN_LOW_SPEED) {
+                fanRotationSpeed = FAN_MAX_SPEED;
+            } else if (fanRotationSpeed == FAN_MAX_SPEED) {
+                fanAnimation = IDLE;
+                fanRotationSpeed = FAN_LOW_SPEED;
+            }
+            break;
         default:
             break;
     }
@@ -733,9 +794,11 @@ int main(int argc, char** argv)
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
+    glutSpecialFunc(specialKeyInput);
     glutMotionFunc(motion);
     glutTimerFunc(30, update, 0);
 
+    lampLoader.LoadFile("./objs/lamp/lamp.obj");
     chairLoader.LoadFile("./objs/chair/chair.obj");
     fanLoader.LoadFile("./objs/fan/fan.obj");
     monitorLoader.LoadFile("./objs/monitor/monitor.obj");
