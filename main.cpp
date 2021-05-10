@@ -167,7 +167,7 @@ void initTextures()
     loadTexture("./res/textures/door-frame.png", &doorFrameTexture);
     setupTexture(&doorFrameTexture);
 
-    loadTexture("./res/textures/gogh.png", &vanGoghTexture);
+    loadTexture("./res/textures/starry-night.png", &vanGoghTexture);
     setupTexture(&vanGoghTexture);
 
     loadTexture("./res/textures/ricardoComCaraDeSemVergonho.png", &ricardoSemVergonhoTexture);
@@ -179,14 +179,11 @@ void initTextures()
     loadTexture("./res/textures/grey-texture.png", &whiteTexture);
     setupTexture(&whiteTexture);
 
-    loadTexture("./objs/bed/sheet.png", &someTexture);
+    loadTexture("./objs/bed/darkwood.png", &someTexture);
     setupTexture(&someTexture);
 
     loadTexture("./objs/bed/sheet copy.png", &sheetTexture);
     setupTexture(&sheetTexture);
-
-    loadTexture("./res/textures/screen.png", &screenTexture);
-    setupTexture(&screenTexture);
 }
 
 void init(void)
@@ -266,7 +263,7 @@ void init(void)
    cactusPlantMesh = cactusLoader.LoadedMeshes[1].setup();
 }
 
-void setupLightning()
+void setupLighting()
 {
     glEnable(GL_LIGHTING); 
 
@@ -343,7 +340,7 @@ void display(void)
     drawCrosshair(windows_w, windows_h);
 
     setupCamera();
-    setupLightning();
+    setupLighting();
     
     ambient.active();
     
@@ -419,8 +416,7 @@ void display(void)
         glEnableClientState(GL_NORMAL_ARRAY);
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
-        wardrobeMesh.material.active();
-        wardrobeMesh.material.dye();
+        glBindTexture(GL_TEXTURE_2D, woodTexture.id);
 
         glVertexPointer(3, GL_FLOAT, 0, &wardrobeMesh.vertices_pointers[0]);
         glNormalPointer(GL_FLOAT, 0, &wardrobeMesh.vertices_normals[0]);
